@@ -79,6 +79,8 @@ POST /api/orders/create_from_cart/
 - **Init Containers**:
   - Run database migrations
   - Collect static files
+- **Secrets Note**:
+  - secrets.example.yaml is provided for GitHub. The actual secrets.yaml containing sensitive information is not uploaded.
 
 ---
 
@@ -91,11 +93,11 @@ APIsProject/
 │   ├── serializers.py    # DRF serializers including nested relations
 │   ├── views.py          # ViewSets + custom actions
 │   ├── permissions.py    # Custom role-based permissions
-│   ├── urls.py           # Router endpoints
+│   └── urls.py           # Router endpoints
 │
 ├── APIsProject/
 │   ├── settings.py       # DRF, JWT, DB, static, installed apps
-│   ├── urls.py           # JWT endpoints + app endpoints
+│   └── urls.py           # JWT endpoints + app endpoints
 ├── k8s/
 │   ├── namespace.yaml
 │   ├── mysql/
@@ -119,18 +121,6 @@ APIsProject/
 ├── staticfiles/            # Collected static files
 └── README.md
 ```
-
----
-
-##  Permissions
-
-Custom permissions are defined in `permissions.py`:
-
-| Permission Class | Description |
-|-----------------|-------------|
-| `IsAdmin` | User in **Admin** group |
-| `IsManager` | User in **Manager** group |
-| `IsDeliveryCrew` | User in **Delivery Crew** group |
 
 ---
 
@@ -210,54 +200,49 @@ Custom permissions are defined in `permissions.py`:
 
 ---
 
-## ⚙️ Running Locally (Docker Compose)
-
-```bash
-docker compose up -d --build
-```
-
-Access:
-```
-http://localhost
-```
-
----
-
-## ☸️ Running on Kubernetes (Minikube)
+##  Running on Kubernetes (Minikube)
 
 ### 1. Start Minikube
 ```bash
 minikube start
 ```
 
-### 2. Create namespace
+### 2. Set Minikube Docker environment
+```bash
+eval $(minikube docker-env)
+```
+
+### 3. Create namespace
 ```bash
 kubectl apply -f k8s/namespace.yaml
 ```
 
-### 3. Deploy MySQL
+### 4. Deploy MySQL
 ```bash
 kubectl apply -f k8s/mysql/
 ```
 
-### 4. Deploy Web App
+### 5. Deploy Web App
 ```bash
 kubectl apply -f k8s/web/
 ```
 
-### 5. Deploy Nginx
+### 6. Deploy Nginx
 ```bash
 kubectl apply -f k8s/nginx/
 ```
 
-### 6. Access service
+### 7. Access service
 ```bash
-minikube service nginx-service -n dev-mysql
+kubectl port-forward svc/nginx-service 8080:80 -n dev-mysql
 ```
-
+#### Then open:
+```bash
+http://127.0.0.1:8080
+```
 ---
 
-## 🗄️ Database
+## Database
 
 - **MySQL** (Kubernetes Stateful setup)
 - Credentials stored in **Kubernetes Secrets**
@@ -265,7 +250,7 @@ minikube service nginx-service -n dev-mysql
 
 ---
 
-## 📦 Tech Stack
+## Tech Stack
 
 - Python 3.9
 - Django 4.2
@@ -279,15 +264,10 @@ minikube service nginx-service -n dev-mysql
 
 ---
 
-## 🎯 Purpose
+## Purpose
 
 This project is designed for:
 - Backend portfolio / technical interviews
 - Demonstrating Kubernetes + Django best practices
 - Showcasing real-world API design and RBAC
 
----
-
-## 📄 License
-
-MIT License
