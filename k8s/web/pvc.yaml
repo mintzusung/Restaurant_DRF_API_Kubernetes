@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: web-static-pvc
+  namespace: dev-mysql
+spec:
+  accessModes:
+    - ReadWriteMany   # 允許多個 Pod 掛載
+  resources:
+    requests:
+      storage: 1Gi

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-config
+  namespace: dev-mysql
+data:
+  DJANGO_SETTINGS_MODULE: "APIsProject.settings"

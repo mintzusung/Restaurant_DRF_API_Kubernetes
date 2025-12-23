@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: django_api
+    command: gunicorn APIsProject.wsgi:application --bind 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - ./staticfiles:/static
+    ports:
+      - "8000:8000"
+
+  nginx:
+    image: nginx:latest
+    container_name: django_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./staticfiles:/static
+    depends_on:
+      - web

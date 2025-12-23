@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deployment-web
+  namespace: dev-mysql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      # initContainer 先做 migrate，確保 DB 就緒
+      initContainers:
+      - name: migrate
+        image: django_api_mysql:latest
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c"]
+        args:
+          - |
+            # 等待 MySQL ready
+            until nc -z $DB_HOST $DB_PORT; do
+              echo "Waiting for MySQL..."
+              sleep 3
+            done
+            python manage.py migrate
+        env:
+        - name: DB_HOST
+          value: mysql-service
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_DATABASE
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_PASSWORD
+      - name: collectstatic
+        image: django_api_mysql:latest
+        imagePullPolicy: IfNotPresent
+        command: ["python", "manage.py", "collectstatic", "--noinput"]
+        volumeMounts:
+        - name: web-static-volume
+          mountPath: /APIsProject/staticfiles      
+
+      containers:
+      - name: django-api
+        image: django_api_mysql:latest
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - name: web-static-volume
+          mountPath: /APIsProject/staticfiles   # Django STATIC_ROOT
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DJANGO_SETTINGS_MODULE
+          valueFrom:
+            configMapKeyRef:
+              name: web-config
+              key: DJANGO_SETTINGS_MODULE
+        - name: DB_HOST
+          value: mysql-service
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_DATABASE
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: MYSQL_PASSWORD
+        command: ["gunicorn"]
+        args: ["APIsProject.wsgi:application", "--bind", "0.0.0.0:8000"]
+      volumes:
+      - name: web-static-volume
+        persistentVolumeClaim:
+          claimName: web-static-pvc
