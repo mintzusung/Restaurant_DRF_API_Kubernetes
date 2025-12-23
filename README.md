@@ -83,19 +83,20 @@ POST /api/orders/create_from_cart/
   - secrets.example.yaml is provided for GitHub. The actual secrets.yaml containing sensitive information is not uploaded.
 
 ### Architecture Diagram
-[User]
-   |
-   v
-[Nginx Service]
-   |
-   v
-[Web Deployment]
- ├─ initContainer: migrate & collectstatic
- └─ main container: Django + Gunicorn
-   |
-   v
-[MySQL StatefulSet + PVC]
-
+```text
+      [User]
+         |
+         v
+   [Nginx Service]
+         |
+         v
+   [Web Deployment]
+     ├─ initContainer: migrate & collectstatic
+     └─ main container: Django + Gunicorn
+         |
+         v
+  [MySQL StatefulSet + PVC]
+```
 ---
 
 ##  Project Structure
