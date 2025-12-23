@@ -1,4 +1,4 @@
-# Django REST API – Food Ordering System (Kubernetes + MySQL)
+# Django REST API – Food Ordering System (Kubernetes)
 
 This project is a **production-style backend API** built with **Django REST Framework (DRF)** and deployed on **Kubernetes (Minikube)** with **MySQL**, **Gunicorn**, and **Nginx**.
 
