@@ -82,6 +82,20 @@ POST /api/orders/create_from_cart/
 - **Secrets Note**:
   - secrets.example.yaml is provided for GitHub. The actual secrets.yaml containing sensitive information is not uploaded.
 
+### Architecture Diagram
+[User]
+   |
+   v
+[Nginx Service]
+   |
+   v
+[Web Deployment]
+ ├─ initContainer: migrate & collectstatic
+ └─ main container: Django + Gunicorn
+   |
+   v
+[MySQL StatefulSet + PVC]
+
 ---
 
 ##  Project Structure
@@ -250,6 +264,13 @@ http://127.0.0.1:8080
 
 ---
 
+## Testing
+
+- All API endpoints tested with JWT authentication and role-based permissions.
+- Deployed on Minikube with MySQL, PVCs, ConfigMaps, Secrets, and initContainers, simulating a production-like environment.
+
+---
+
 ## Tech Stack
 
 - Python 3.9
@@ -262,12 +283,4 @@ http://127.0.0.1:8080
 - Docker
 - Kubernetes (Minikube)
 
----
-
-## Purpose
-
-This project is designed for:
-- Backend portfolio / technical interviews
-- Demonstrating Kubernetes + Django best practices
-- Showcasing real-world API design and RBAC
 
