@@ -1,4 +1,4 @@
-# Django REST API – Food Ordering System (Kubernetes)
+# Django REST API – Food Ordering System (Kubernetes + MySQL)
 
 This project is a **production-style backend API** built with **Django REST Framework (DRF)** and deployed on **Kubernetes (Minikube)** with **MySQL**, **Gunicorn**, and **Nginx**.
 
@@ -96,7 +96,7 @@ POST /api/orders/create_from_cart/
          |
          v
   [MySQL StatefulSet + PVC]
-```
+
 ---
 
 ##  Project Structure
@@ -272,16 +272,87 @@ http://127.0.0.1:8080
 
 ---
 
+
 ## Tech Stack
 
-- Python 3.9
-- Django 4.2
-- Django REST Framework
-- SimpleJWT
-- MySQL
-- Gunicorn
-- Nginx
-- Docker
-- Kubernetes (Minikube)
+- **Backend**: Django, Django REST Framework
+- **Authentication**: JWT, Role-Based Access Control (RBAC)
+- **Database**: MySQL
+- **Reverse Proxy**: Nginx
+- **Containerization**: Docker
+- **Orchestration**: Kubernetes (Minikube)
+- **Testing**: Postman
 
+
+---
+
+## System Evolution
+
+This project intentionally went through multiple architectural stages to explore real-world backend trade-offs.
+
+---
+
+### Stage 1: Local Monolithic Deployment
+
+**Initial State**
+
+- Django application served as a single deployment unit using SQLite
+- Application startup, database migrations, and service runtime were tightly coupled
+- Any code change required rebuilding and restarting the entire application
+
+**Limitations Identified**
+
+- High deployment risk: a small change could take down the entire service
+- Database limitations with SQLite: single-writer constraint and limited scaling
+- Unclear startup order between application and database readiness
+- Difficult to reason about failure recovery and service lifecycle
+
+This stage was suitable for rapid development, but exposed limitations when reliability and maintainability became priorities.
+
+---
+
+### Stage 2: Containerization with Docker
+
+**Improvements**
+
+- Packaged Django, Nginx, and SQLite into containers using Docker and Docker Compose
+- Standardized runtime environments
+- Improved reproducibility across development setups
+
+**Remaining Issues**
+
+- Containers were still deployed and managed as a single logical unit
+- Database initialization and application startup remained tightly coupled
+- SQLite limitations persisted in multi-container or production-like environments
+
+At this stage, the system was containerized but still effectively a **monolithic deployment**.
+
+---
+
+### Stage 3: Kubernetes-Orchestrated Architecture
+
+**Transition and Key Changes**
+
+##### 1. Separation of Deployment Responsibilities
+- Django API, Nginx, and MySQL are deployed as independent Kubernetes resources
+- Each component has its own lifecycle and restart policy
+
+##### 2. Init Containers for Deterministic Startup
+- Database migrations and readiness checks are executed in **Init Containers**
+- Application containers start only after initialization succeeds
+
+**Benefits**:
+- Eliminates race conditions during startup
+- Prevents partial or inconsistent deployments
+- Makes deployment behavior predictable and repeatable
+
+##### 3. Persistent Storage with PVC
+- MySQL uses **PersistentVolumeClaims (PVC)** for data storage
+- Data lifecycle is decoupled from Pod lifecycle
+
+**Benefits**:
+- Pod restarts do not result in data loss
+- System tolerates crashes and redeployments gracefully
+
+- Initially continued with SQLite, later replaced with MySQL for persistent storage
 
