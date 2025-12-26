@@ -98,6 +98,7 @@ POST /api/orders/create_from_cart/
 [ MySQL StatefulSet + PVC ]
 
 * Each component can be independently restarted, updated, or debugged
+```
 
 ---
 
