@@ -84,18 +84,20 @@ POST /api/orders/create_from_cart/
 
 ### Architecture Diagram
 ```text
-      [User]
-         |
-         v
-   [Nginx Service]
-         |
-         v
-   [Web Deployment]
-     ├─ initContainer: migrate & collectstatic
-     └─ main container: Django + Gunicorn
-         |
-         v
-  [MySQL StatefulSet + PVC]
+[ User / Client ]
+       |
+       v
+  [ Nginx Service ]
+       |
+       v
+ [ Django REST API ]
+       ├─ initContainer: migrate & collectstatic
+       └─ main container: Django + Gunicorn
+       |
+       v
+[ MySQL StatefulSet + PVC ]
+
+* Each component can be independently restarted, updated, or debugged
 
 ---
 
