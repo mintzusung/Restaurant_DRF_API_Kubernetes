@@ -172,7 +172,6 @@ While the infrastructure ensures stability, the backend is engineered for secure
 | POST   | `/api/token/`         | Get access + refresh tokens |
 | POST   | `/api/token/refresh/` | Refresh token               |
 
----
 
 ### Categories
 
@@ -180,7 +179,6 @@ While the infrastructure ensures stability, the backend is engineered for secure
 | ------------------ | --------------- |
 | `/api/categories/` | CRUD categories |
 
----
 
 ### Menu
 
@@ -190,7 +188,6 @@ While the infrastructure ensures stability, the backend is engineered for secure
 | `?category=<id>`   | Filter          |
 | `?sort=price`      | Sort by price   |
 
----
 
 ### Cart
 
@@ -201,7 +198,6 @@ While the infrastructure ensures stability, the backend is engineered for secure
 | DELETE | `/api/cart/{id}/`  | Remove item |
 | DELETE | `/api/cart/clear/` | Clear cart  |
 
----
 
 ### Orders
 
@@ -213,7 +209,6 @@ While the infrastructure ensures stability, the backend is engineered for secure
 | POST   | `/api/orders/{id}/assign_order/`   | Manager assigns          |
 | PATCH  | `/api/orders/{id}/mark_delivered/` | Delivery marks delivered |
 
----
 
 ### Users
 
@@ -225,7 +220,6 @@ These actions require **Manager/Admin** permissions.
 | `/api/users/{id}/set_manager/`  | Promote to Manager     |
 | `/api/users/{id}/set_delivery/` | Add Delivery crew role |
 
----
 
 ## Permissions
 
