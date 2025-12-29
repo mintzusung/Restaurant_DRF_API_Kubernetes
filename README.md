@@ -43,23 +43,22 @@ This project was developed through an iterative process, simulating a real-world
 
 This stage achieves a **High-Fidelity Environment** by decoupling the application into independent, orchestrated components.
 
-#### 🛠️ Key Architectural Enhancements:
 
-**1. Separation of Deployment Responsibilities**
+**Separation of Deployment Responsibilities**
 * Decoupled the monolithic logic into distinct layers (Nginx, Django, MySQL), managed as independent Kubernetes workloads.
 * Each component now has its own **Lifecycle and Restart Policy**, improving system resilience.
 
-**2. Deterministic Startup with Init Containers**
+**Deterministic Startup with Init Containers**
 * **Problem:** Distributed systems often face "race conditions" where the app starts before the database is ready.
 * **Solution:** Implemented **Init Containers** to handle database migrations and connectivity checks.
 * **Value:** Ensures the main Django container only starts when the infrastructure is ready, making deployments predictable.
 
-**3. Database Strategy: Migration from SQLite to MySQL**
+**Database Strategy: Migration from SQLite to MySQL**
 * **Technical Challenge:** Identified that SQLite’s file-based storage is incompatible with the **ephemeral nature** of Kubernetes Pods. In a containerized environment, local file changes are lost upon Pod termination or rescheduling.
 * **Architectural Decision:** Migrated the persistence layer to **MySQL** utilizing **StatefulSets** and **PersistentVolumeClaims (PVC)** to decouple data storage from the compute lifecycle.
 * **Impact:** Achieved guaranteed **Data Durability** and system resilience. The application layer became truly **Stateless**, satisfying a core requirement for scalable distributed systems.
 
-**4. Networking & Infrastructure Orchestration**
+**Networking & Infrastructure Orchestration**
 To ensure system reliability and security, I implemented a multi-layer networking strategy that decouples the application from the underlying infrastructure.
 
 #### 🌐 Traffic Routing Logic:
@@ -106,66 +105,6 @@ Gateway: Nginx as a reverse proxy for request routing and static asset delivery.
 ---
 
 
-## Features
-
-### 1. Users & Authentication
-
-* JWT authentication (`/api/token/`, `/api/token/refresh/`)
-* Three roles:
-
-  * **Admin**
-  * **Manager**
-  * **Delivery crew**
-* Role assignment endpoints in `UserViewSet`
-
----
-
-### 2. Menu Management
-
-* Category CRUD
-* Menu Item CRUD
-* Optional query filters:
-
-  * `?category=<id>`
-  * `?sort=price`
-
----
-
-### 3. Cart System
-
-* Each authenticated user has their own cart
-* Add, update, delete items
-* Clear cart with:
-
-```
-DELETE /api/cart/clear/
-```
-
----
-
-### 4. Orders
-
-* Create order from cart:
-
-```
-POST /api/orders/create_from_cart/
-```
-
-* Role-based visibility:
-
-  * **User:** only own orders
-  * **Manager/Admin:** all orders
-  * **Delivery crew:** only assigned orders
-* Manager actions:
-
-  * Assign order to delivery crew
-* Delivery crew actions:
-
-  * Mark order as delivered
-
----
-
-
 ##  Project Structure
 
 ```text
@@ -206,7 +145,25 @@ APIsProject/
 
 ---
 
-## API Endpoints Overview
+## 🛠️ Backend Implementation & Business Logic
+
+While the infrastructure ensures stability, the backend is engineered for secure, scalable food ordering operations:
+
+### 1. Robust Access Control (RBAC)
+* **JWT Authentication:** Secure stateless session management via `rest_framework_simplejwt`.
+* **Granular Permissions:** Implemented custom permission classes to enforce role-based logic:
+    * **Admin/Manager:** Full CRUD over Menu & Categories; Order assignment.
+    * **Delivery Crew:** Read-only access to assigned orders; Status update capability (`mark_delivered`).
+    * **Customer:** Personalized Cart management and Order history.
+
+### 2. Functional Order & Cart Pipeline
+* **Dynamic Cart System:** Each user session is isolated, supporting atomic operations for adding/updating/clearing items.
+* **Efficient Querying:** Menu items feature advanced filtering (`?category=`) and ordering (`?sort=price`) implemented via DRF `FilterBackend`.
+* **Order Lifecycle:** Optimized endpoint (`/create_from_cart/`) to convert cart items into orders with relational integrity, ensuring price snapshots at the time of purchase.
+
+---
+
+## 🛠️ API Endpoints Overview
 
 ### Auth
 
@@ -282,7 +239,7 @@ Custom permissions are defined in `permissions.py`:
 
 ---
 
-##  Running on Kubernetes (Minikube)
+## 🛠️  Running on Kubernetes (Minikube)
 
 ### 1. Start Minikube
 ```bash
@@ -332,7 +289,7 @@ http://127.0.0.1:8080
 
 ---
 
-## Testing
+## 🛠️ Testing
 
 - All API endpoints tested with JWT authentication and role-based permissions.
 - Deployed on Minikube with MySQL, PVCs, ConfigMaps, Secrets, and initContainers, simulating a production-like environment.
