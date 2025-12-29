@@ -2,60 +2,11 @@
 
 This repository demonstrates a **distributed backend architecture** built with **Django REST Framework (DRF)** and orchestrated via **Kubernetes**. It focuses on solving common backend challenges: service decoupling, stateful data persistence, and secure role-based access.
 
-## 🌟 Project Core Values
+## 🎯 Project Core Values
 
 * **Production-Oriented Deployment:** Instead of a simple local setup, this project uses **Kubernetes (Minikube)** to implement production patterns like **Init Containers** (for automated migrations) and **StatefulSets** (for database reliability).
 * **Granular Access Control:** Implements a complete **Role-Based Access Control (RBAC)** system and **JWT Authentication**, ensuring secure interactions between Admin, Manager, Delivery Crew, and Customers.
 * **High-Fidelity Environment:** Utilizes a multi-container setup with **Nginx**, **Gunicorn**, and **MySQL**, mimicking the complexity of a real-world distributed system.
-
----
-
-## 🚀 System Evolution & Architectural Trade-offs
-
-This project was developed through an iterative process, simulating a real-world transition from a local prototype to a **high-fidelity orchestrated system**.
-
----
-
-### Stage 1: Local Monolithic Deployment
-
-**Initial State**
-* **Architecture:** Django application and SQLite database running as a single, tightly coupled unit on a local machine.
-* **Trade-offs:** Fast to develop and simple to test, but lacked **High Availability (HA)**. 
-* **The Problem:** Any database migration or code change created a **Single Point of Failure (SPOF)**—if the application crashed, the entire service (and its access to data) vanished.
-
-> **Key Insight:** Tightly coupled application and database lifecycles make failure recovery unpredictable and scaling nearly impossible.
-
----
-
-### Stage 2: Containerization with Docker
-
-**Improvements**
-* **Standardization:** Packaged Django, Nginx, and the environment into containers using **Docker Compose**.
-* **Fidelity:** Solved the "it works on my machine" problem by ensuring consistent runtime environments across different development setups.
-
-**Remaining Issues**
-* **Logical Monolith:** While containerized, the system was still managed as a single logical unit. 
-* **Coupling:** Database initialization and application startup remained dependent on one another without a formal orchestration layer.
-
----
-
-### Stage 3: Kubernetes-Orchestrated Architecture (Current)
-
-This stage achieves a **High-Fidelity Environment** by decoupling the application into independent, orchestrated components.
-
-**Key Architectural Enhancements**
-
-* **Layered Deployment:** Decoupled Nginx (Gateway), Django (App), and MySQL (Data) into independent workloads with specific **Lifecycle & Restart Policies**.
-* **Database Durability:** Transitioned from SQLite to **MySQL** using **StatefulSets** and **PVCs**, ensuring data survives Pod rescheduling—a critical step in making the App layer **Stateless**.
-* **Race Condition Mitigation:** Utilized **Init Containers** to enforce a deterministic startup sequence, ensuring the database is ready and migrations are applied before the application boots.
-
-**Networking & Infrastructure Orchestration**
-
-To ensure system reliability, I implemented a multi-layer networking strategy that isolates the internal infrastructure from external traffic.
-
-* **Traffic Routing (Nginx):** Single entry point (Port 80) handling reverse proxying and static asset offloading to reduce backend compute load.
-* **Service Discovery:** Components communicate via stable **K8s Service DNS** (e.g., `mysql-service`) rather than volatile Pod IPs, ensuring zero-downtime internal routing.
-* **Secure Mapping:** Bridged the isolated network to `localhost:8080` via `port-forward` while enforcing strict **Host Header Validation** within Django.
 
 ---
 
@@ -119,6 +70,58 @@ APIsProject/
 └── manage.py
 
 ```
+
+
+---
+
+
+## 🏗️ System Evolution & Architectural Trade-offs
+
+This project was developed through an iterative process, simulating a real-world transition from a local prototype to a **high-fidelity orchestrated system**.
+
+---
+
+### Stage 1: Local Monolithic Deployment
+
+**Initial State**
+* **Architecture:** Django application and SQLite database running as a single, tightly coupled unit on a local machine.
+* **Trade-offs:** Fast to develop and simple to test, but lacked **High Availability (HA)**. 
+* **The Problem:** Any database migration or code change created a **Single Point of Failure (SPOF)**—if the application crashed, the entire service (and its access to data) vanished.
+
+> **Key Insight:** Tightly coupled application and database lifecycles make failure recovery unpredictable and scaling nearly impossible.
+
+---
+
+### Stage 2: Containerization with Docker
+
+**Improvements**
+* **Standardization:** Packaged Django, Nginx, and the environment into containers using **Docker Compose**.
+* **Fidelity:** Solved the "it works on my machine" problem by ensuring consistent runtime environments across different development setups.
+
+**Remaining Issues**
+* **Logical Monolith:** While containerized, the system was still managed as a single logical unit. 
+* **Coupling:** Database initialization and application startup remained dependent on one another without a formal orchestration layer.
+
+---
+
+### Stage 3: Kubernetes-Orchestrated Architecture (Current)
+
+This stage achieves a **High-Fidelity Environment** by decoupling the application into independent, orchestrated components.
+
+**Key Architectural Enhancements**
+
+* **Layered Deployment:** Decoupled Nginx (Gateway), Django (App), and MySQL (Data) into independent workloads with specific **Lifecycle & Restart Policies**.
+* **Database Durability:** Transitioned from SQLite to **MySQL** using **StatefulSets** and **PVCs**, ensuring data survives Pod rescheduling—a critical step in making the App layer **Stateless**.
+* **Race Condition Mitigation:** Utilized **Init Containers** to enforce a deterministic startup sequence, ensuring the database is ready and migrations are applied before the application boots.
+
+**Networking & Infrastructure Orchestration**
+
+To ensure system reliability, I implemented a multi-layer networking strategy that isolates the internal infrastructure from external traffic.
+
+* **Traffic Routing (Nginx):** Single entry point (Port 80) handling reverse proxying and static asset offloading to reduce backend compute load.
+* **Service Discovery:** Components communicate via stable **K8s Service DNS** (e.g., `mysql-service`) rather than volatile Pod IPs, ensuring zero-downtime internal routing.
+* **Secure Mapping:** Bridged the isolated network to `localhost:8080` via `port-forward` while enforcing strict **Host Header Validation** within Django.
+
 
 ---
 
@@ -210,7 +213,7 @@ Custom permissions are defined in `permissions.py`:
 
 ---
 
-## ☸️  Running on Kubernetes (Minikube)
+## 🚀  Running on Kubernetes (Minikube)
 
 ### 1. Start Minikube
 ```bash
@@ -253,7 +256,7 @@ http://127.0.0.1:8080
 ---
 
 
-## 🧪 Testing & Validation
+## ✅ Testing & Validation
 * **End-to-End:** All endpoints validated via Postman with JWT role-based headers.
 * **Resilience:** Verified data persistence using **PVC** and **Secrets** during Pod rescheduling.
 * **Environment:** Simulated production workflow using **Init Containers** for schema readiness.
