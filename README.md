@@ -50,6 +50,7 @@ This stage achieves a **High-Fidelity Environment** by decoupling the applicatio
 * **Race Condition Mitigation:** Utilized **Init Containers** to enforce a deterministic startup sequence, ensuring the database is ready and migrations are applied before the application boots.
 
 **Networking & Infrastructure Orchestration**
+
 To ensure system reliability, I implemented a multi-layer networking strategy that isolates the internal infrastructure from external traffic.
 
 * **Traffic Routing (Nginx):** Single entry point (Port 80) handling reverse proxying and static asset offloading to reduce backend compute load.
