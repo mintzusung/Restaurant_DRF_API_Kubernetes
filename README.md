@@ -2,7 +2,7 @@
 
 This repository demonstrates a **distributed backend architecture** built with **Django REST Framework (DRF)** and orchestrated via **Kubernetes**. It focuses on solving common backend challenges: service decoupling, stateful data persistence, and secure role-based access.
 
-### 🌟 Project Core Values
+## 🌟 Project Core Values
 
 * **Production-Oriented Deployment:** Instead of a simple local setup, this project uses **Kubernetes (Minikube)** to implement production patterns like **Init Containers** (for automated migrations) and **StatefulSets** (for database reliability).
 * **Granular Access Control:** Implements a complete **Role-Based Access Control (RBAC)** system and **JWT Authentication**, ensuring secure interactions between Admin, Manager, Delivery Crew, and Customers.
@@ -43,69 +43,48 @@ This project was developed through an iterative process, simulating a real-world
 
 This stage achieves a **High-Fidelity Environment** by decoupling the application into independent, orchestrated components.
 
+#### ⚙️ Key Architectural Enhancements
 
-**1. Separation of Deployment Responsibilities**
-* Decoupled the monolithic logic into distinct layers (Nginx, Django, MySQL), managed as independent Kubernetes workloads.
-* Each component now has its own **Lifecycle and Restart Policy**, improving system resilience.
+* **Layered Deployment:** Decoupled Nginx (Gateway), Django (App), and MySQL (Data) into independent workloads with specific **Lifecycle & Restart Policies**.
+* **Database Durability:** Transitioned from SQLite to **MySQL** using **StatefulSets** and **PVCs**, ensuring data survives Pod rescheduling—a critical step in making the App layer **Stateless**.
+* **Race Condition Mitigation:** Utilized **Init Containers** to enforce a deterministic startup sequence, ensuring the database is ready and migrations are applied before the application boots.
 
-**2. Deterministic Startup with Init Containers**
-* **Problem:** Distributed systems often face "race conditions" where the app starts before the database is ready.
-* **Solution:** Implemented **Init Containers** to handle database migrations and connectivity checks.
-* **Value:** Ensures the main Django container only starts when the infrastructure is ready, making deployments predictable.
+#### 🌐 Networking & Infrastructure Orchestration
+To ensure system reliability, I implemented a multi-layer networking strategy that isolates the internal infrastructure from external traffic.
 
-**3. Database Strategy: Migration from SQLite to MySQL**
-* **Technical Challenge:** Identified that SQLite’s file-based storage is incompatible with the **ephemeral nature** of Kubernetes Pods. In a containerized environment, local file changes are lost upon Pod termination or rescheduling.
-* **Architectural Decision:** Migrated the persistence layer to **MySQL** utilizing **StatefulSets** and **PersistentVolumeClaims (PVC)** to decouple data storage from the compute lifecycle.
-* **Impact:** Achieved guaranteed **Data Durability** and system resilience. The application layer became truly **Stateless**, satisfying a core requirement for scalable distributed systems.
-
-**4. Networking & Infrastructure Orchestration**
-To ensure system reliability and security, I implemented a multi-layer networking strategy that decouples the application from the underlying infrastructure.
-
-#### 🌐 Traffic Routing Logic:
-* **Gateway Layer (Nginx):** Acts as the single entry point, listening on port `80`. It performs reverse proxying to the application layer and handles static asset offloading to reduce backend load.
-* **Application Layer (Django):** Operates on port `8000`. It is entirely **environment-agnostic**, retrieving its database location via the `DB_HOST` environment variable injected by Kubernetes.
-* **Database Layer (MySQL):** Isolated within the internal network on port `3306`, accessible only through the stable DNS handle `mysql-service`.
-
-#### 🧬 Service Discovery & Dependency Management:
-* **Stable Identifiers:** By utilizing **Kubernetes Services (ClusterIP)**, components communicate via stable DNS names (e.g., `mysql-service`) rather than volatile Pod IPs. This ensures zero-downtime internal routing during Pod rescheduling.
-* **Deterministic Startup (Init Containers):** * Implemented a `wait-for-db` logic using **Init Containers** to check port 3306 availability via `netcat`.
-    * This prevents "Race Conditions" where the Django app might crash if it attempts to connect before the MySQL service is fully operational.
-    * Database migrations (`python manage.py migrate`) are executed within this stage to ensure schema readiness before the main application boots.
-
-#### 🔐 Secure External Mapping:
-* **Local Development:** Bridged the isolated K8s network to the host using `kubectl port-forward` on port `8080`.
-* **Host Validation:** Leveraged Django's `ALLOWED_HOSTS` and `CSRF_TRUSTED_ORIGINS` to perform strict **Host Header Validation**, ensuring the application only processes requests routed through the verified Nginx gateway.
-
+* **Traffic Routing (Nginx):** Single entry point (Port 80) handling reverse proxying and static asset offloading to reduce backend compute load.
+* **Service Discovery:** Components communicate via stable **K8s Service DNS** (e.g., `mysql-service`) rather than volatile Pod IPs, ensuring zero-downtime internal routing.
+* **Secure Mapping:** Bridged the isolated network to `localhost:8080` via `port-forward` while enforcing strict **Host Header Validation** within Django.
 
 ---
 
 
-### Architecture Diagram
+## 🗺️Architecture Diagram
 ```text
-[ User / Client ]
-       |
-       v
-[ Nginx Service ] (Reverse Proxy & Static Routing)
-       |
-       v
-[ Django REST API ] (Application Layer)
-       ├─ initContainer: Database Migrations & Static Collection
-       └─ main container: Gunicorn + DRF
-       |
-       v
-[ MySQL StatefulSet + PVC ] (Persistence Layer)
-Key Components:
-Orchestration: Kubernetes (Deployments, StatefulSets, Services, ConfigMaps, Secrets).
+        [ User / Client ]
+               |
+               v (HTTP Port 80)
+    +-----------------------+
+    |    Nginx Service      | <--- Gateway (Reverse Proxy)
+    +-----------------------+
+               |
+               v (gunicorn Port 8000)
+    +-----------------------+
+    |    Django REST API    | <--- Application Layer
+    |  (Pod with initCont.) |      ├─ Init: Wait-for-DB & Migrate
+    +-----------------------+      └─ Main: DRF + Gunicorn
+               |
+               v (MySQL Port 3306)
+    +-----------------------+
+    | MySQL StatefulSet+PVC | <--- Persistence Layer
+    +-----------------------+
 
-Persistence: MySQL with PVC for reliable stateful storage.
-
-Gateway: Nginx as a reverse proxy for request routing and static asset delivery.
 ```
 
 ---
 
 
-##  Project Structure
+##  📂Project Structure
 
 ```text
 APIsProject/
@@ -218,7 +197,7 @@ These actions require **Manager/Admin** permissions.
 | `/api/users/{id}/set_delivery/` | Add Delivery crew role |
 
 
-## Permissions
+### Permissions
 
 Custom permissions are defined in `permissions.py`:
 
@@ -272,28 +251,19 @@ http://127.0.0.1:8080
 ```
 ---
 
-## 🗄️Database
 
-- **MySQL** (Kubernetes Stateful setup)
-- Credentials stored in **Kubernetes Secrets**
-- Data persisted via **PersistentVolumeClaim**
+## 🧪 Testing & Validation
+* **End-to-End:** All endpoints validated via Postman with JWT role-based headers.
+* **Resilience:** Verified data persistence using **PVC** and **Secrets** during Pod rescheduling.
+* **Environment:** Simulated production workflow using **Init Containers** for schema readiness.
 
----
-
-## 🧪 Testing
-
-- All API endpoints tested with JWT authentication and role-based permissions.
-- Deployed on Minikube with MySQL, PVCs, ConfigMaps, Secrets, and initContainers, simulating a production-like environment.
 
 ---
 
 
 ## 🧰 Tech Stack
-
-- **Backend**: Django, Django REST Framework
-- **Authentication**: JWT, Role-Based Access Control (RBAC)
-- **Database**: MySQL
-- **Reverse Proxy**: Nginx
-- **Containerization**: Docker
-- **Orchestration**: Kubernetes (Minikube)
-- **Testing**: Postman
+* **Backend**: Django (DRF), Gunicorn
+* **Gateway**: Nginx (Reverse Proxy)
+* **Orchestration**: Kubernetes (Minikube)
+* **Storage**: MySQL, PersistentVolumeClaims
+* **Security**: JWT, RBAC, K8s Secrets
