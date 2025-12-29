@@ -44,21 +44,21 @@ This project was developed through an iterative process, simulating a real-world
 This stage achieves a **High-Fidelity Environment** by decoupling the application into independent, orchestrated components.
 
 
-**Separation of Deployment Responsibilities**
+**1. Separation of Deployment Responsibilities**
 * Decoupled the monolithic logic into distinct layers (Nginx, Django, MySQL), managed as independent Kubernetes workloads.
 * Each component now has its own **Lifecycle and Restart Policy**, improving system resilience.
 
-**Deterministic Startup with Init Containers**
+**2. Deterministic Startup with Init Containers**
 * **Problem:** Distributed systems often face "race conditions" where the app starts before the database is ready.
 * **Solution:** Implemented **Init Containers** to handle database migrations and connectivity checks.
 * **Value:** Ensures the main Django container only starts when the infrastructure is ready, making deployments predictable.
 
-**Database Strategy: Migration from SQLite to MySQL**
+**3. Database Strategy: Migration from SQLite to MySQL**
 * **Technical Challenge:** Identified that SQLite’s file-based storage is incompatible with the **ephemeral nature** of Kubernetes Pods. In a containerized environment, local file changes are lost upon Pod termination or rescheduling.
 * **Architectural Decision:** Migrated the persistence layer to **MySQL** utilizing **StatefulSets** and **PersistentVolumeClaims (PVC)** to decouple data storage from the compute lifecycle.
 * **Impact:** Achieved guaranteed **Data Durability** and system resilience. The application layer became truly **Stateless**, satisfying a core requirement for scalable distributed systems.
 
-**Networking & Infrastructure Orchestration**
+**4. Networking & Infrastructure Orchestration**
 To ensure system reliability and security, I implemented a multi-layer networking strategy that decouples the application from the underlying infrastructure.
 
 #### 🌐 Traffic Routing Logic:
@@ -85,10 +85,10 @@ To ensure system reliability and security, I implemented a multi-layer networkin
 [ User / Client ]
        |
        v
-  [ Nginx Service ] (Reverse Proxy & Static Routing)
+[ Nginx Service ] (Reverse Proxy & Static Routing)
        |
        v
- [ Django REST API ] (Application Layer)
+[ Django REST API ] (Application Layer)
        ├─ initContainer: Database Migrations & Static Collection
        └─ main container: Gunicorn + DRF
        |
@@ -109,38 +109,35 @@ Gateway: Nginx as a reverse proxy for request routing and static asset delivery.
 
 ```text
 APIsProject/
-├── APIsapp/
-│   ├── models.py         # Category, MenuItem, Cart, Order, OrderItem
-│   ├── serializers.py    # DRF serializers including nested relations
-│   ├── views.py          # ViewSets + custom actions
-│   ├── permissions.py    # Custom role-based permissions
-│   └── urls.py           # Router endpoints
-│
-├── APIsProject/
-│   ├── settings.py       # DRF, JWT, DB, static, installed apps
-│   └── urls.py           # JWT endpoints + app endpoints
-├── k8s/
-│   ├── namespace.yaml
-│   ├── mysql/
+├── APIsProject/               # Django Project Core Settings
+│   ├── settings.py            # Configuration (Env-variable driven)
+│   └── urls.py                # Main URL routing & JWT endpoints
+├── APIsapp/                   # Business Logic Layer
+│   ├── models.py              # Schema: Category, Menu, Cart, Order
+│   ├── serializers.py         # Data Validation & Transformation
+│   ├── views.py               # ViewSets & Custom Business Actions
+│   ├── permissions.py         # RBAC Logic (Admin/Manager/Delivery)
+│   └── urls.py                # App-level API routing
+├── k8s/                       # Infrastructure as Code (IaC)
+│   ├── namespace.yaml         # Resource isolation (dev-mysql)
+│   ├── nginx/                 # [Gateway Layer] Reverse Proxy & Static offloading
 │   │   ├── deployment.yaml
 │   │   ├── service.yaml
-│   │   ├── pvc.yaml
-│   │   └── secrets.yaml
-│   ├── web/
-│   │   ├── deployment.yaml
-│   │   ├── service.yaml
-│   │   ├── pvc.yaml
-│   │   └── configmap.yaml
-│   └── nginx/
+│   │   └── configmap.yaml     # Nginx conf (proxy_pass logic)
+│   ├── web/                   # [Application Layer] Gunicorn + DRF
+│   │   ├── deployment.yaml    # Includes Init Containers (wait-for-db)
+│   │   ├── service.yaml       # ClusterIP for internal discovery
+│   │   ├── pvc.yaml           # Static file persistence
+│   │   └── configmap.yaml     # App environment variables
+│   └── mysql/                 # [Persistence Layer] Database Engine
 │       ├── deployment.yaml
-│       ├── service.yaml
-│       └── configmap.yaml
-├── Dockerfile
-├── docker-compose.yml      # Local development
-├── manage.py
-├── Pipfile / Pipfile.lock
-├── staticfiles/            # Collected static files
-└── README.md
+│       ├── service.yaml       # Stable DNS: mysql-service
+│       ├── pvc.yaml           # Persistent storage for MySQL data
+│       └── secrets.yaml       # Sensitive DB credentials (Base64)
+├── Dockerfile                 # Multi-stage production image build
+├── docker-compose.yml         # Local development orchestration
+└── manage.py
+
 ```
 
 ---
@@ -163,7 +160,7 @@ While the infrastructure ensures stability, the backend is engineered for secure
 
 ---
 
-## 🛠️ API Endpoints Overview
+## 📖 API Endpoints Overview
 
 ### Auth
 
@@ -233,7 +230,7 @@ Custom permissions are defined in `permissions.py`:
 
 ---
 
-## 🛠️  Running on Kubernetes (Minikube)
+## ☸️  Running on Kubernetes (Minikube)
 
 ### 1. Start Minikube
 ```bash
@@ -275,7 +272,7 @@ http://127.0.0.1:8080
 ```
 ---
 
-## Database
+## 🗄️Database
 
 - **MySQL** (Kubernetes Stateful setup)
 - Credentials stored in **Kubernetes Secrets**
@@ -283,7 +280,7 @@ http://127.0.0.1:8080
 
 ---
 
-## 🛠️ Testing
+## 🧪 Testing
 
 - All API endpoints tested with JWT authentication and role-based permissions.
 - Deployed on Minikube with MySQL, PVCs, ConfigMaps, Secrets, and initContainers, simulating a production-like environment.
@@ -291,7 +288,7 @@ http://127.0.0.1:8080
 ---
 
 
-## 🛠️ Tech Stack
+## 🧰 Tech Stack
 
 - **Backend**: Django, Django REST Framework
 - **Authentication**: JWT, Role-Based Access Control (RBAC)
