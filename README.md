@@ -43,13 +43,13 @@ This project was developed through an iterative process, simulating a real-world
 
 This stage achieves a **High-Fidelity Environment** by decoupling the application into independent, orchestrated components.
 
-#### ⚙️ Key Architectural Enhancements
+**Key Architectural Enhancements**
 
 * **Layered Deployment:** Decoupled Nginx (Gateway), Django (App), and MySQL (Data) into independent workloads with specific **Lifecycle & Restart Policies**.
 * **Database Durability:** Transitioned from SQLite to **MySQL** using **StatefulSets** and **PVCs**, ensuring data survives Pod rescheduling—a critical step in making the App layer **Stateless**.
 * **Race Condition Mitigation:** Utilized **Init Containers** to enforce a deterministic startup sequence, ensuring the database is ready and migrations are applied before the application boots.
 
-#### 🌐 Networking & Infrastructure Orchestration
+**Networking & Infrastructure Orchestration**
 To ensure system reliability, I implemented a multi-layer networking strategy that isolates the internal infrastructure from external traffic.
 
 * **Traffic Routing (Nginx):** Single entry point (Port 80) handling reverse proxying and static asset offloading to reduce backend compute load.
