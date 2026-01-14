@@ -110,7 +110,7 @@ This stage achieves a **High-Fidelity Environment** by decoupling the applicatio
 
 **Key Architectural Enhancements**
 
-* **Layered Deployment:** Decoupled Nginx (Gateway), Django (App), and MySQL (Data) into independent workloads with specific **Lifecycle & Restart Policies**.
+* **Layered Deployment:** Decoupled Nginx (Gateway), Django (App), and MySQL (Data) into independent workloads with explicit **Readiness/Liveness Probes**, enabling controlled traffic gating and automated recovery.
 * **Database Durability:** Transitioned from SQLite to **MySQL** using **StatefulSets** and **PVCs**, ensuring data survives Pod rescheduling—a critical step in making the App layer **Stateless**.
 * **Race Condition Mitigation:** Utilized **Init Containers** to enforce a deterministic startup sequence, ensuring the database is ready and migrations are applied before the application boots.
 
@@ -120,7 +120,9 @@ To ensure system reliability, I implemented a multi-layer networking strategy th
 
 * **Traffic Routing (Nginx):** Single entry point (Port 80) handling reverse proxying and static asset offloading to reduce backend compute load.
 * **Service Discovery:** Components communicate via stable **K8s Service DNS** (e.g., `mysql-service`) rather than volatile Pod IPs, ensuring zero-downtime internal routing.
-* **Secure Mapping:** Bridged the isolated network to `localhost:8080` via `port-forward` while enforcing strict **Host Header Validation** within Django.
+* **Secure Local Exposure & Verification:** Exposed the internal ClusterIP-based Nginx service to `localhost:8080` via `kubectl port-forward` for local development and demos.  
+  This also serves as a validation mechanism, ensuring that **Service routing**, **readiness probes**, and the Nginx reverse proxy chain are functioning correctly before traffic is accepted.
+* **Application-Level Security:** Enforced Django **Host Header validation** via `ALLOWED_HOSTS`, ensuring the application only responds to explicitly trusted domains.
 
 
 ---
@@ -246,9 +248,11 @@ kubectl apply -f k8s/nginx/
 ```
 
 ### 7. Access service
+#### Expose the backend service locally via port-forward (for development/demo):
 ```bash
 kubectl port-forward svc/nginx-service 8080:80 -n dev-mysql
 ```
+
 #### Then open:
 ```bash
 http://127.0.0.1:8080

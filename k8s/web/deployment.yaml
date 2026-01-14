@@ -64,6 +64,20 @@ spec:
           mountPath: /APIsProject/staticfiles   # Django STATIC_ROOT
         ports:
         - containerPort: 8000
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
         env:
         - name: DJANGO_SETTINGS_MODULE
           valueFrom:

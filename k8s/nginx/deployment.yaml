@@ -24,6 +24,20 @@ spec:
           mountPath: /static     # Nginx ConfigMap alias /static 對應
         ports:
         - containerPort: 80
+        readinessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 2
+          periodSeconds: 5
+          timeoutSeconds: 2
+          failureThreshold: 3
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
       volumes:
       - name: nginx-config
         configMap:
