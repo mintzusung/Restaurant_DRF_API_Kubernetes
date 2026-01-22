@@ -131,7 +131,7 @@ To ensure system reliability, I implemented a multi-layer networking strategy th
 
 While the infrastructure ensures stability, the backend is engineered for secure, scalable food ordering operations:
 
-### 1. Robust Access Control (RBAC)
+### 1. Authentication & Role-Based Access Control (RBAC)
 * **JWT Authentication:** Secure stateless session management via `rest_framework_simplejwt`.
 * **Granular Permissions:** Implemented custom permission classes to enforce role-based logic:
     * **Admin/Manager:** Full CRUD over Menu & Categories; Order assignment.
